@@ -16,6 +16,13 @@ namespace Nuernberger.FlyingDMX
             All
         }
 
+        public string ID
+        {
+            get { return _id; }
+            set { _id = value; }
+        }
+        private string _id;
+
         public string Name
         {
             get { return _name; }

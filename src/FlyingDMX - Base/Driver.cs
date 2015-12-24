@@ -5,9 +5,13 @@ using System.Text;
 
 namespace Nuernberger.FlyingDMX
 {
-    abstract class Driver
+    public abstract class Driver
     {
-        public abstract int FrameRate { get; set; }
+        public abstract string FullName { get; set; }
+        public virtual string Description { get; set; }
+        public abstract string[] HardwareIDs { get; set; }
+
+        public virtual int FrameRate { get; set; }
 
         public Driver(int framerate) 
         {

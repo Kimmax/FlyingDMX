@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
+using System.Drawing;
 using Nuernberger.FlyingDMX;
 
 namespace Nuernberger.FlyingDMX.TestConsole
@@ -24,6 +25,21 @@ namespace Nuernberger.FlyingDMX.TestConsole
     {
         Server flyingServer;
         DMXController controller;
+        DriverManager driverManager;
+        Driver loadedDriver
+        {
+            get
+            {
+                return _loadedDriver;
+            }
+            set
+            {
+                _loadedDriver = value;
+                if (controller != null)
+                    controller.DMXDriver = value;
+            }
+        }
+        private Driver _loadedDriver;
 
         public void Run()
         {
@@ -35,10 +51,28 @@ namespace Nuernberger.FlyingDMX.TestConsole
             controller = new DMXController(Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().FullName), "devices"));
             controller.OnDeviceLoaded += OnDeviceLoaded;
 
+            driverManager = new DriverManager(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location));
+            driverManager.OnDriverLoaded += OnDriverLoaded;
+            driverManager.OnDriverUnloaded += OnDriverUnloaded;
+            driverManager.Load();
+            driverManager.StartWatching();
+
             Console.WriteLine("\nLoading devices from folder '" + controller.DeviceDefinitionsLocation + "' ..");
             controller.LoadDevices();
 
             flyingServer.Start(true);
+        }
+
+        void OnDriverLoaded(object sender, PluginLoadUnloadEventArgs e)
+        {
+            Console.WriteLine("Loaded driver {0}", e.Driver.FullName);
+            loadedDriver = e.Driver;
+        }
+
+        void OnDriverUnloaded(object sender, PluginLoadUnloadEventArgs e)
+        {
+            Console.WriteLine("Unloaded driver {0}", e.Driver.FullName);
+            loadedDriver = null;
         }
 
         void OnDeviceLoaded(object sender, DMXDeviceLoadedEventArgs e)
@@ -71,9 +105,28 @@ namespace Nuernberger.FlyingDMX.TestConsole
         {
             Console.WriteLine("\nGot command:\n" + String.Format("\tType: {0}\n\tArgs: {1}", e.Command.Type.ToString(), String.Join(" ", e.Command.Args)));
 
-            if(e.Command.Type == Command.CommandType.Exit)
+            switch(e.Command.Type)
             {
-                flyingServer.Stop();
+                case Command.CommandType.SetBrightness:
+                {
+                    DMXDevice.Location loc = (DMXDevice.Location)Enum.Parse(typeof(DMXDevice.Location), e.Command.Args[1]);
+                    controller.SetDeviceMaster(Convert.ToByte(e.Command.Args[0]), loc);
+
+                    break;
+                }
+                case Command.CommandType.SetColor:
+                {
+                    Color color = System.Drawing.ColorTranslator.FromHtml(e.Command.Args[0]);
+                    DMXDevice.Location loc = (DMXDevice.Location)Enum.Parse(typeof(DMXDevice.Location), e.Command.Args[1]);
+                    controller.SetDeviceColor(color, loc);
+
+                    break;
+                }
+                case Command.CommandType.Exit:
+                {
+                    flyingServer.Stop();
+                    break;
+                }
             }
         }
     }

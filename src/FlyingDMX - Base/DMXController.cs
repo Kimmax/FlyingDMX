@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
+using System.Drawing;
 
 namespace Nuernberger.FlyingDMX
 {
@@ -13,11 +14,32 @@ namespace Nuernberger.FlyingDMX
         public List<DMXDevice> DMXDevices { get; private set; }
 
         public event EventHandler<DMXDeviceLoadedEventArgs> OnDeviceLoaded;
+        public event EventHandler<ColorChangedEventArgs> OnColorChange;
+
+        public Driver DMXDriver { get; set; }
 
         public DMXController(string deviceDefinationLocation)
         {
             this.DeviceDefinitionsLocation = deviceDefinationLocation;
             this.DMXDevices = new List<DMXDevice>();
+        }
+
+        public void SetDeviceMaster(byte value, DMXDevice.Location loc)
+        {
+            foreach (DMXDevice device in DMXDevices.Where(device => device.DeviceLocation == loc || loc == DMXDevice.Location.All))
+            {
+                DMXDriver.SetDMXValue(device.Master, value);
+            }
+        }
+
+        public void SetDeviceColor(Color color, DMXDevice.Location loc)
+        {
+            foreach(DMXDevice device in DMXDevices.Where(device => device.DeviceLocation == loc || loc == DMXDevice.Location.All))
+            {
+                DMXDriver.SetDMXValue(device.R, color.R);
+                DMXDriver.SetDMXValue(device.G, color.G);
+                DMXDriver.SetDMXValue(device.B, color.B);
+            }
         }
 
         public void LoadDevices()

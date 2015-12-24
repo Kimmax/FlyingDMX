@@ -9,8 +9,8 @@ namespace Nuernberger.FlyingDMX
     {
         public enum CommandType
         {
-            GetLight,
-            SetLight,
+            SetBrightness,
+            SetColor,
             Exit
         }
 
