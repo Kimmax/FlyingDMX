@@ -9,8 +9,9 @@ namespace Nuernberger.FlyingDMX
     {
         public enum CommandType
         {
-            ServerHOP,
-            Direct
+            GetLight,
+            SetLight,
+            Exit
         }
 
         public CommandType Type { get; private set; }

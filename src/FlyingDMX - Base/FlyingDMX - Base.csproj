@@ -39,10 +39,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ServerStartEventArgs.cs" />
+    <Compile Include="ServerStartStopEventArgs.cs" />
     <Compile Include="Command.cs" />
-    <Compile Include="FlyingClient.cs" />
-    <Compile Include="ClientConnectedEventArgs.cs" />
     <Compile Include="IncomingCommandEventArgs.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Server.cs" />

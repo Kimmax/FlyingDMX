@@ -10,81 +10,81 @@ namespace Nuernberger.FlyingDMX
 {
     public class Server
     {
-        public short Port { get; set; }
+        private IPEndPoint _endPoint;
+        public IPEndPoint Endpoint 
+        { 
+            get { return _endPoint; }
+            private set { _endPoint = value; } 
+        }
 
         public bool Listening { get; private set; }
 
-        private TcpListener Listener;
-
-        private List<FlyingClient> clients = new List<FlyingClient>();
+        private UdpClient listener;
+        private Thread serverThread;
+        private ManualResetEvent threadBlocker = new ManualResetEvent(false);
 
         public event EventHandler<IncomingCommandEventArgs> OnCommandIncoming;
-        public event EventHandler<ClientConnectedEventArgs> OnClientConnect;
-        public event EventHandler<ServerStartEventArgs> OnServerStart;
+        public event EventHandler<ServerStartStopEventArgs> OnServerStart;
+        public event EventHandler<ServerStartStopEventArgs> OnServerStop;
 
         public Server(short port = 3636)
         {
-            this.Port = port;
-            this.Listener = new TcpListener(IPAddress.Any, this.Port);
+            this.Endpoint = new IPEndPoint(IPAddress.Any, port);
+            this.listener = new UdpClient(this.Endpoint);
+
+            this.listener.Client.SendTimeout = 500;
+            this.listener.Client.ReceiveTimeout = 500;
         }
 
-        public void Start()
+        public void Start(bool blockThread = false)
         {
-            new Thread(() =>
+            this.serverThread = new Thread(() =>
             {
-                this.Listener.Start();
                 this.Listening = true;
 
                 if (this.OnServerStart != null)
-                    this.OnServerStart(this, new ServerStartEventArgs(this.Listener.LocalEndpoint));
+                    this.OnServerStart(this, new ServerStartStopEventArgs(this.Endpoint));
 
                 while (this.Listening)
                 {
-                    if (this.Listener.Pending())
+                    try
                     {
-                        FlyingClient newClient = new FlyingClient(this.Listener.AcceptTcpClient(), this.clients.Count +1, false);
-                        newClient.OnCommandIncoming += FlyingClient_OnCommandIncoming;
-                        newClient.Init();
+                        Byte[] data = this.listener.Receive(ref this._endPoint);
+                        string message = Encoding.ASCII.GetString(data);
 
-                        this.clients.Add(newClient);
-
-                        if (this.OnClientConnect != null)
-                            this.OnClientConnect(this, new ClientConnectedEventArgs(newClient));
+                        if (this.OnCommandIncoming != null)
+                            this.OnCommandIncoming(this, new IncomingCommandEventArgs(Command.TryParse(message)));
+                    }
+                    catch(SocketException ex)
+                    {
+                        if (ex.ErrorCode != 10060)
+                        {
+                            // Handle the error. 10060 is a timeout error, which is expected.
+                        }
                     }
 
-                    Thread.Sleep(100);
+                    Thread.Sleep(10);
                 }
-            }).Start();
+            });
+            
+            this.serverThread.Start();
+
+            if (blockThread)
+                threadBlocker.WaitOne();
         }
 
-        void FlyingClient_OnCommandIncoming(object sender, IncomingCommandEventArgs e)
+        public void Stop()
         {
-            if(e.Command.Type != Command.CommandType.Direct)
-            {
-                IPAddress hopDest = IPAddress.Parse(e.Command.Args[0]);
-                short hopPort = Convert.ToInt16(e.Command.Args[1]);
+            this.Listening = false;
+            this.listener.Close();
 
-                TcpClient client = new TcpClient();
-                client.Connect(hopDest, hopPort);
+            this.serverThread.Join(510);
+            this.serverThread = null;
 
-                FlyingClient newClient = new FlyingClient(client, this.clients.Count +1, false);
-                newClient.OnCommandIncoming += FlyingClient_OnCommandIncoming;
-                newClient.Init();
+            this.threadBlocker.Set();
 
-                if(newClient.Active)
-                {
-                    foreach (FlyingClient fc in this.clients)
-                        fc.Stop();
-
-                    this.Listening = false;
-                    this.Listener.Stop();
-                }
-            }
-            else
-            {
-                if (this.OnCommandIncoming != null)
-                    this.OnCommandIncoming(this, e);
-            }
+            if (this.OnServerStop != null)
+                this.OnServerStop(this, new ServerStartStopEventArgs(this.Endpoint));
         }
     }
 }

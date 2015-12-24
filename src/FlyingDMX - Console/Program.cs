@@ -12,6 +12,9 @@ namespace Nuernberger.FlyingDMX.TestConsole
         {
             Base myBase = new Base();
             myBase.Run();
+
+            Console.WriteLine("Press any key to exit..");
+            Console.ReadKey();
         }
     }
 
@@ -23,24 +26,30 @@ namespace Nuernberger.FlyingDMX.TestConsole
         {
             flyingServer = new Server(3636);
             flyingServer.OnServerStart += OnServerStart;
-            flyingServer.OnClientConnect += OnClientConnect;
+            flyingServer.OnServerStop += OnServerStop;
             flyingServer.OnCommandIncoming += OnCommandIncoming;
-            flyingServer.Start();
+            
+            flyingServer.Start(true);
         }
 
-        void OnServerStart(object sender, ServerStartEventArgs e)
+        void OnServerStart(object sender, ServerStartStopEventArgs e)
         {
             Console.WriteLine("Server started at: " + e.Endpoint.ToString());
         }
 
-        void OnClientConnect(object sender, ClientConnectedEventArgs e)
+        void OnServerStop(object sender, ServerStartStopEventArgs e)
         {
-            Console.WriteLine("\nNew client connected! ID: " + e.Client.ID);
+            Console.WriteLine("Server stopped: " + e.Endpoint.ToString());
         }
 
         void OnCommandIncoming(object sender, IncomingCommandEventArgs e)
         {
             Console.WriteLine("\nGot command:\n" + String.Format("\tType: {0}\n\tArgs: {1}", e.Command.Type.ToString(), String.Join(" ", e.Command.Args)));
+
+            if(e.Command.Type == Command.CommandType.Exit)
+            {
+                flyingServer.Stop();
+            }
         }
     }
 }
