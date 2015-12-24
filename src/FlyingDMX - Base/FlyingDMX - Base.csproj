@@ -11,6 +11,7 @@
     <AssemblyName>FlyingDMX - Base</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <NuGetPackageImportStamp>86ff8dc2</NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -39,6 +40,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DMXController.cs" />
+    <Compile Include="DMXDevice.cs" />
+    <Compile Include="Driver.cs" />
+    <Compile Include="DMXDeviceLoadedEventArgs.cs" />
+    <Compile Include="IniFile.cs" />
     <Compile Include="ServerStartStopEventArgs.cs" />
     <Compile Include="Command.cs" />
     <Compile Include="IncomingCommandEventArgs.cs" />

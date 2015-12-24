@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.IO;
 using Nuernberger.FlyingDMX;
 
 namespace Nuernberger.FlyingDMX.TestConsole
@@ -10,6 +11,7 @@ namespace Nuernberger.FlyingDMX.TestConsole
     {
         static void Main(string[] args)
         {
+            Console.Title = "FlyingDMX";
             Base myBase = new Base();
             myBase.Run();
 
@@ -21,6 +23,7 @@ namespace Nuernberger.FlyingDMX.TestConsole
     public class Base
     {
         Server flyingServer;
+        DMXController controller;
 
         public void Run()
         {
@@ -29,7 +32,29 @@ namespace Nuernberger.FlyingDMX.TestConsole
             flyingServer.OnServerStop += OnServerStop;
             flyingServer.OnCommandIncoming += OnCommandIncoming;
             
+            controller = new DMXController(Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().FullName), "devices"));
+            controller.OnDeviceLoaded += OnDeviceLoaded;
+
+            Console.WriteLine("\nLoading devices from folder '" + controller.DeviceDefinitionsLocation + "' ..");
+            controller.LoadDevices();
+
             flyingServer.Start(true);
+        }
+
+        void OnDeviceLoaded(object sender, DMXDeviceLoadedEventArgs e)
+        {
+            Console.WriteLine(String.Format("\nLoaded Device '{0}':", (String.IsNullOrEmpty(e.Device.Name)) ? this.controller.DMXDevices.Count.ToString() : e.Device.Name));
+            Console.WriteLine(
+                String.Format("\tMaster: {0}\n\tR: {1}\n\tG: {2}\n\tB: {3}\n\tStrobe: {4}\n\tSound2Light: {5}\n\tLocation: {6}\n\t",
+                    (e.Device.Master == -1) ? "Not set" : e.Device.Master.ToString(),
+                    (e.Device.R == -1) ? "Not set" : e.Device.Master.ToString(),
+                    (e.Device.G == -1) ? "Not set" : e.Device.Master.ToString(),
+                    (e.Device.B == -1) ? "Not set" : e.Device.Master.ToString(),
+                    (e.Device.Strobe == -1) ? "Not set" : e.Device.Master.ToString(),
+                    (e.Device.Sound2Light == -1) ? "Not set" : e.Device.Master.ToString(),
+                    e.Device.DeviceLocation.ToString()
+                )
+            );
         }
 
         void OnServerStart(object sender, ServerStartStopEventArgs e)
