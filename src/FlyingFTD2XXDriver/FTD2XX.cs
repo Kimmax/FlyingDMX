@@ -1,13 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO.Ports;
 using System.Linq;
+using System.Management;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 
 namespace Nuernberger.FlyingDMX.Drivers
 {
-    class FTD2XX : Driver
+    public class FTD2XX : Driver
     {
         public override string FullName
         { 
@@ -59,7 +61,13 @@ namespace Nuernberger.FlyingDMX.Drivers
         [DllImport("FTD2XX.dll")]
         public static extern FT_STATUS FT_Purge(uint ftHandle, UInt32 dwMask);
         [DllImport("FTD2XX.dll")]
+        public static extern FT_STATUS FT_SetRts(uint ftHandle);
+        [DllImport("FTD2XX.dll")]
         public static extern FT_STATUS FT_ClrRts(uint ftHandle);
+        [DllImport("FTD2XX.dll")]
+        public static extern FT_STATUS FT_SetDtr(uint ftHandle);
+        [DllImport("FTD2XX.dll")]
+        public static extern FT_STATUS FT_ClrDtr(uint ftHandle);
         [DllImport("FTD2XX.dll")]
         public static extern FT_STATUS FT_SetBreakOn(uint ftHandle);
         [DllImport("FTD2XX.dll")]
@@ -80,8 +88,18 @@ namespace Nuernberger.FlyingDMX.Drivers
 
         public override void Start()
         {
+            var ports = SerialPort.GetPortNames();
+            foreach(string port in ports)
+            {
+                SerialPort sPort = new SerialPort(port);
+                sPort.Open();
+                sPort.Close();
+                sPort.Dispose();
+            }
+
             handle = 0;
             status = FT_Open(0, ref handle);
+            done = false;
             workThread = new Thread(new ThreadStart(writeData));
             workThread.Start();
         }
