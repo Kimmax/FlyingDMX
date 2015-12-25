@@ -68,6 +68,7 @@
     <Compile Include="DMXDeviceLoadedEventArgs.cs" />
     <Compile Include="DriverManager.cs" />
     <Compile Include="IniFile.cs" />
+    <Compile Include="QueueBuffer.cs" />
     <Compile Include="ServerStartStopEventArgs.cs" />
     <Compile Include="Command.cs" />
     <Compile Include="IncomingCommandEventArgs.cs" />
