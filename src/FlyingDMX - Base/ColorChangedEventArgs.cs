@@ -9,12 +9,12 @@ namespace Nuernberger.FlyingDMX
     public class ColorChangedEventArgs : EventArgs
     {
         public Color NewColor { get; private set; }
-        public DMXDevice.Location Location { get; private set; }
+        public DMXDevice Device { get; private set; }
 
-        public ColorChangedEventArgs(Color newColor, DMXDevice.Location loc)
+        public ColorChangedEventArgs(Color newColor, DMXDevice dev)
         {
             this.NewColor = newColor;
-            this.Location = loc;
+            this.Device = dev;
         }
     }
 }

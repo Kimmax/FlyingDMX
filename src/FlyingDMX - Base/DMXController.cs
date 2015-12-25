@@ -39,6 +39,9 @@ namespace Nuernberger.FlyingDMX
                 DMXDriver.SetDMXValue(device.R, color.R);
                 DMXDriver.SetDMXValue(device.G, color.G);
                 DMXDriver.SetDMXValue(device.B, color.B);
+
+                if (this.OnColorChange != null)
+                    this.OnColorChange(this, new ColorChangedEventArgs(color, device));
             }
         }
 

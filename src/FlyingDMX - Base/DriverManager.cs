@@ -15,8 +15,6 @@ namespace Nuernberger.FlyingDMX
 
         public string DriverLocation { get; set; }
 
-        private bool watching = false;
-
         WqlEventQuery insertQuery;
         ManagementEventWatcher insertWatcher;
 
@@ -82,17 +80,39 @@ namespace Nuernberger.FlyingDMX
                 Driver plugin = (Driver)Activator.CreateInstance(type, 25);
                 drivers.Add(plugin);
             }
+
+            ManagementObjectCollection collection;
+            using (var searcher = new ManagementObjectSearcher(@"Select * From Win32_USBHub"))
+                collection = searcher.Get();
+
+            foreach (var device in collection)
+            {
+                foreach (Driver driver in this.drivers)
+                {
+                    if (driver.HardwareIDs.Any(hID => (device.GetPropertyValue("DeviceID") as string).StartsWith(hID)))
+                    {
+                        driver.Start();
+
+                        if (this.OnDriverLoaded != null)
+                            this.OnDriverLoaded(this, new PluginLoadUnloadEventArgs(driver));
+
+                        goto End;
+                    }
+                }
+            }
+        End:
+            return;
         }
 
         public void StartWatching()
         {
-            WqlEventQuery insertQuery = new WqlEventQuery("SELECT * FROM __InstanceCreationEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_USBHub'");
-            ManagementEventWatcher insertWatcher = new ManagementEventWatcher(insertQuery);
+            insertQuery = new WqlEventQuery("SELECT * FROM __InstanceCreationEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_USBHub'");
+            insertWatcher = new ManagementEventWatcher(insertQuery);
             insertWatcher.EventArrived += new EventArrivedEventHandler(DeviceInsertedEvent);
             insertWatcher.Start();
 
-            WqlEventQuery removeQuery = new WqlEventQuery("SELECT * FROM __InstanceDeletionEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_USBHub'");
-            ManagementEventWatcher removeWatcher = new ManagementEventWatcher(removeQuery);
+            removeQuery = new WqlEventQuery("SELECT * FROM __InstanceDeletionEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_USBHub'");
+            removeWatcher = new ManagementEventWatcher(removeQuery);
             removeWatcher.EventArrived += new EventArrivedEventHandler(DeviceRemovedEvent);
             removeWatcher.Start();
         }
