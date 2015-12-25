@@ -5,6 +5,7 @@ using System.Text;
 using System.IO;
 using System.Drawing;
 using Nuernberger.FlyingDMX;
+using Nuernberger.FlyingDMX.Drivers;
 
 namespace Nuernberger.FlyingDMX.TestConsole
 {
@@ -50,7 +51,7 @@ namespace Nuernberger.FlyingDMX.TestConsole
             
             controller = new DMXController(Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().FullName), "devices"));
             controller.OnDeviceLoaded += OnDeviceLoaded;
-
+            
             driverManager = new DriverManager(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location));
             driverManager.OnDriverLoaded += OnDriverLoaded;
             driverManager.OnDriverUnloaded += OnDriverUnloaded;
