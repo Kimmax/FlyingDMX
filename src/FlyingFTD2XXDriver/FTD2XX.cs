@@ -83,7 +83,7 @@ namespace Nuernberger.FlyingDMX.Drivers
 
         public FTD2XX(int frameRate) : base(frameRate)
         {
-            this.buffer = new byte[255];
+            this.buffer = new byte[16];
         }
 
         public override void Start()

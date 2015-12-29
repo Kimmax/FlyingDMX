@@ -27,6 +27,9 @@ namespace Nuernberger.FlyingDMX.TestConsole
         Server flyingServer;
         DMXController controller;
         DriverManager driverManager;
+
+        int skippedUI = -4;
+
         Driver loadedDriver
         {
             get
@@ -82,11 +85,11 @@ namespace Nuernberger.FlyingDMX.TestConsole
             Console.WriteLine(
                 String.Format("\tMaster: {0}\n\tR: {1}\n\tG: {2}\n\tB: {3}\n\tStrobe: {4}\n\tSound2Light: {5}\n\tLocation: {6}\n\t",
                     (e.Device.Master == -1) ? "Not set" : e.Device.Master.ToString(),
-                    (e.Device.R == -1) ? "Not set" : e.Device.Master.ToString(),
-                    (e.Device.G == -1) ? "Not set" : e.Device.Master.ToString(),
-                    (e.Device.B == -1) ? "Not set" : e.Device.Master.ToString(),
-                    (e.Device.Strobe == -1) ? "Not set" : e.Device.Master.ToString(),
-                    (e.Device.Sound2Light == -1) ? "Not set" : e.Device.Master.ToString(),
+                    (e.Device.R == -1) ? "Not set" : e.Device.R.ToString(),
+                    (e.Device.G == -1) ? "Not set" : e.Device.G.ToString(),
+                    (e.Device.B == -1) ? "Not set" : e.Device.B.ToString(),
+                    (e.Device.Strobe == -1) ? "Not set" : e.Device.Strobe.ToString(),
+                    (e.Device.Sound2Light == -1) ? "Not set" : e.Device.Sound2Light.ToString(),
                     e.Device.DeviceLocation.ToString()
                 )
             );
@@ -104,30 +107,42 @@ namespace Nuernberger.FlyingDMX.TestConsole
 
         void OnCommandIncoming(object sender, IncomingCommandEventArgs e)
         {
-            Console.WriteLine("\nGot command:\n" + String.Format("\tType: {0}\n\tArgs: {1}", e.Command.Type.ToString(), String.Join(" ", e.Command.Args)));
+            if (skippedUI == 60 || skippedUI < 0)
+            {
+                Console.WriteLine("\nGot command:\n" + String.Format("\tType: {0}\n\tArgs: {1}", e.Command.Type.ToString(), String.Join(" ", e.Command.Args)));
 
-            switch(e.Command.Type)
+                if (skippedUI < 0)
+                    skippedUI++;
+                else
+                    skippedUI = 0;
+            }
+            else
+            {
+                skippedUI++;
+            }
+
+            switch (e.Command.Type)
             {
                 case Command.CommandType.SetBrightness:
-                {
-                    DMXDevice.Location loc = (DMXDevice.Location)Enum.Parse(typeof(DMXDevice.Location), e.Command.Args[1]);
-                    controller.SetDeviceMaster(Convert.ToByte(e.Command.Args[0]), loc);
+                    {
+                        DMXDevice.Location loc = (DMXDevice.Location)Enum.Parse(typeof(DMXDevice.Location), e.Command.Args[1]);
+                        controller.SetDeviceMaster(Convert.ToByte(e.Command.Args[0]), loc);
 
-                    break;
-                }
+                        break;
+                    }
                 case Command.CommandType.SetColor:
-                {
-                    Color color = System.Drawing.ColorTranslator.FromHtml(e.Command.Args[0]);
-                    DMXDevice.Location loc = (DMXDevice.Location)Enum.Parse(typeof(DMXDevice.Location), e.Command.Args[1]);
-                    controller.SetDeviceColor(color, loc);
+                    {
+                        Color color = System.Drawing.ColorTranslator.FromHtml(e.Command.Args[0]);
+                        DMXDevice.Location loc = (DMXDevice.Location)Enum.Parse(typeof(DMXDevice.Location), e.Command.Args[1]);
+                        controller.SetDeviceColor(color, loc);
 
-                    break;
-                }
+                        break;
+                    }
                 case Command.CommandType.Exit:
-                {
-                    flyingServer.Stop();
-                    break;
-                }
+                    {
+                        flyingServer.Stop();
+                        break;
+                    }
             }
         }
     }

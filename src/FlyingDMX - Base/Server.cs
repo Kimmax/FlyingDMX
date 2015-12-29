@@ -33,7 +33,7 @@ namespace Nuernberger.FlyingDMX
             this.listener = new UdpClient(this.Endpoint);
 
             this.listener.Client.SendTimeout = 500;
-            this.listener.Client.ReceiveTimeout = 500;
+            this.listener.Client.ReceiveTimeout = 25;
         }
 
         public void Start(bool blockThread = false)
@@ -62,8 +62,6 @@ namespace Nuernberger.FlyingDMX
                             // Handle the error. 10060 is a timeout error, which is expected.
                         }
                     }
-
-                    Thread.Sleep(10);
                 }
             });
             

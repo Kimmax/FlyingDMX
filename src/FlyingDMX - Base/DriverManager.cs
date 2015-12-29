@@ -77,7 +77,7 @@ namespace Nuernberger.FlyingDMX
             drivers = new List<Driver>(pluginTypes.Count);
             foreach (Type type in pluginTypes)
             {
-                Driver plugin = (Driver)Activator.CreateInstance(type, 25);
+                Driver plugin = (Driver)Activator.CreateInstance(type, 30);
                 drivers.Add(plugin);
             }
 
