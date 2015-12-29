@@ -16,7 +16,27 @@ namespace Nuernberger.FlyingDMX
         public event EventHandler<DMXDeviceLoadedEventArgs> OnDeviceLoaded;
         public event EventHandler<ColorChangedEventArgs> OnColorChange;
 
-        public Driver DMXDriver { get; set; }
+        private DriverDummy _driverDummy = new DriverDummy(0);
+        private Driver _driver;
+
+        public Driver DMXDriver { 
+            get
+            {
+                if (this._driver == null)
+                {
+                    return _driverDummy;
+                }
+                else
+                {
+                    return this._driver;
+                }
+            }
+
+            set 
+            {
+                this._driver = value;
+            } 
+        }
 
         public DMXController(string deviceDefinationLocation)
         {

@@ -63,6 +63,7 @@
     <Compile Include="ColorChangedEventArgs.cs" />
     <Compile Include="DMXController.cs" />
     <Compile Include="DMXDevice.cs" />
+    <Compile Include="DriverDummy.cs" />
     <Compile Include="PluginLoadUnloadEventArgs.cs" />
     <Compile Include="Driver.cs" />
     <Compile Include="DMXDeviceLoadedEventArgs.cs" />
