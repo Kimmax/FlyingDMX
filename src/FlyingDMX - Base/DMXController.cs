@@ -70,13 +70,12 @@ namespace Nuernberger.FlyingDMX
             foreach (string file in Directory.GetFiles(this.DeviceDefinitionsLocation, "*.flyDev"))
             {
                 IniFile deviceDefinition = new IniFile(file);
-                foreach(string device in deviceDefinition.GetSectionsA())
+                foreach(KeyValuePair<string, Dictionary<string, string>> device in deviceDefinition.m_Sections)
                 {
                     DMXDevice dmxDevice = new DMXDevice();
-                    dmxDevice.Name = device;
+                    dmxDevice.Name = device.Key;
 
-                    Dictionary<string, string> channelDefinitions = deviceDefinition.GetKeyValuesPair(device);
-                    foreach(KeyValuePair<string, string> channel in channelDefinitions)
+                    foreach(KeyValuePair<string, string> channel in device.Value)
                     {
                         switch (channel.Key)
                         {
@@ -124,7 +123,7 @@ namespace Nuernberger.FlyingDMX
                     }
 
                     this.DMXDevices.Add(dmxDevice);
-
+                    
                     if (this.OnDeviceLoaded != null)
                         this.OnDeviceLoaded(this, new DMXDeviceLoadedEventArgs(dmxDevice));
                 }

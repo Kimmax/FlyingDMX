@@ -29,8 +29,10 @@ namespace Nuernberger.FlyingDMX
 
         public Server(short port = 3636)
         {
-            this.Endpoint = new IPEndPoint(IPAddress.Any, port);
-            this.listener = new UdpClient(this.Endpoint);
+            this.Endpoint = new IPEndPoint(IPHelper.GetBroadcastIP(), port);
+            this.listener = new UdpClient();
+            this.listener.EnableBroadcast = true;
+            this.listener.Connect(this.Endpoint);
 
             this.listener.Client.SendTimeout = 500;
             this.listener.Client.ReceiveTimeout = 25;

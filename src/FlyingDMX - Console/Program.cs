@@ -14,8 +14,11 @@ namespace Nuernberger.FlyingDMX.TestConsole
         static void Main(string[] args)
         {
             Console.Title = "FlyingDMX";
+            bool drvManagerEnabled = Convert.ToBoolean(args.Where(item => item.StartsWith("drvmnger")).First().Split('=')[1]);
+            string explizitDriver = args.Where(item => item.StartsWith("driver")).First().Split('=')[1];
+
             Base myBase = new Base();
-            myBase.Run();
+            myBase.Run(drvManagerEnabled, explizitDriver);
 
             Console.WriteLine("Press any key to exit..");
             Console.ReadKey();
@@ -45,21 +48,39 @@ namespace Nuernberger.FlyingDMX.TestConsole
         }
         private Driver _loadedDriver;
 
-        public void Run()
+        public void Run(bool driverManagement, string drivertoload = null)
         {
             flyingServer = new Server(3636);
             flyingServer.OnServerStart += OnServerStart;
             flyingServer.OnServerStop += OnServerStop;
             flyingServer.OnCommandIncoming += OnCommandIncoming;
-            
+
+            if(driverManagement)
+            {
+                Console.WriteLine("Starting with driver manager disabled.");
+
+                driverManager = new DriverManager(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location));
+                driverManager.OnDriverLoaded += OnDriverLoaded;
+                driverManager.OnDriverUnloaded += OnDriverUnloaded;
+                driverManager.Load();
+                driverManager.StartWatching();
+            }
+            else
+            {
+                Console.WriteLine("Starting with driver manager disabled.");
+
+                if(!String.IsNullOrEmpty(drivertoload))
+                {
+                    Console.WriteLine("But with driver: " + drivertoload);
+                }
+                else
+                {
+                    Console.WriteLine("And *NO* driver choosen!");
+                }
+            }
+
             controller = new DMXController(Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().FullName), "devices"));
             controller.OnDeviceLoaded += OnDeviceLoaded;
-            
-            driverManager = new DriverManager(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location));
-            driverManager.OnDriverLoaded += OnDriverLoaded;
-            driverManager.OnDriverUnloaded += OnDriverUnloaded;
-            driverManager.Load();
-            driverManager.StartWatching();
 
             Console.WriteLine("\nLoading devices from folder '" + controller.DeviceDefinitionsLocation + "' ..");
             controller.LoadDevices();

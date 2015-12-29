@@ -64,16 +64,17 @@
     <Compile Include="DMXController.cs" />
     <Compile Include="DMXDevice.cs" />
     <Compile Include="DriverDummy.cs" />
+    <Compile Include="IPHelper.cs" />
     <Compile Include="PluginLoadUnloadEventArgs.cs" />
     <Compile Include="Driver.cs" />
     <Compile Include="DMXDeviceLoadedEventArgs.cs" />
     <Compile Include="DriverManager.cs" />
-    <Compile Include="IniFile.cs" />
     <Compile Include="ServerStartStopEventArgs.cs" />
     <Compile Include="Command.cs" />
     <Compile Include="IncomingCommandEventArgs.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Server.cs" />
+    <Compile Include="INIFile.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
