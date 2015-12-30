@@ -14,8 +14,9 @@ namespace Nuernberger.FlyingDMX
 
         public SimpleSender(int port)
         {
+            endpoint = new IPEndPoint(IPAddress.Parse("192.168.178.255"), port);
             sender = new UdpClient();
-            endpoint = new IPEndPoint(IPAddress.Parse("255.255.255.255"), port);
+            sender.EnableBroadcast = true;
         }
 
         public void SendCommand(Command cmd)
@@ -25,8 +26,12 @@ namespace Nuernberger.FlyingDMX
 
         public void SendLine(string text)
         {
-            byte[] data = Encoding.ASCII.GetBytes("Hello UDP Server!!!");
+            byte[] data = Encoding.ASCII.GetBytes(text);
             sender.Send(data, data.Length, endpoint);
+        }
+
+        public void Close()
+        {
             sender.Close();
         }
     }
