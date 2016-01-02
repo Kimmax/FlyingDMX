@@ -11,13 +11,15 @@ namespace Nuernberger.FlyingDMX
         public virtual string Description { get; set; }
         public abstract string[] HardwareIDs { get; set; }
 
+        public virtual string Classname { get; set; }
+
         public virtual int FrameRate { get; set; }
 
         public Driver(int framerate) 
         {
             this.FrameRate = framerate;
         }
-        
+
         public abstract void Start();
 
         public abstract void Stop();

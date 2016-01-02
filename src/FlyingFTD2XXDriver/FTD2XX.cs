@@ -88,17 +88,25 @@ namespace Nuernberger.FlyingDMX.Drivers
 
         public override void Start()
         {
-            var ports = SerialPort.GetPortNames();
-            foreach(string port in ports)
+            try
             {
-                SerialPort sPort = new SerialPort(port);
-                sPort.Open();
-                sPort.Close();
-                sPort.Dispose();
+                var ports = SerialPort.GetPortNames();
+                foreach (string port in ports)
+                {
+                    SerialPort sPort = new SerialPort(port);
+                    sPort.Open();
+                    sPort.Close();
+                    sPort.Dispose();
+                }
+            }
+            catch
+            {
+
             }
 
             handle = 0;
             status = FT_Open(0, ref handle);
+            Console.WriteLine(status.ToString());
             done = false;
             workThread = new Thread(new ThreadStart(writeData));
             workThread.Start();

@@ -30,9 +30,8 @@ namespace Nuernberger.FlyingDMX
         public Server(short port = 3636)
         {
             this.Endpoint = new IPEndPoint(IPHelper.GetBroadcastIP(), port);
-            this.listener = new UdpClient();
+            this.listener = new UdpClient(port);
             this.listener.EnableBroadcast = true;
-            this.listener.Connect(this.Endpoint);
 
             this.listener.Client.SendTimeout = 500;
             this.listener.Client.ReceiveTimeout = 25;
@@ -49,20 +48,25 @@ namespace Nuernberger.FlyingDMX
 
                 while (this.Listening)
                 {
-                    try
+                    if(this.listener.Available > 0)
                     {
-                        Byte[] data = this.listener.Receive(ref this._endPoint);
-                        string message = Encoding.ASCII.GetString(data);
-
-                        if (this.OnCommandIncoming != null)
-                            this.OnCommandIncoming(this, new IncomingCommandEventArgs(Command.TryParse(message)));
-                    }
-                    catch(SocketException ex)
-                    {
-                        if (ex.ErrorCode != 10060)
+                        try
                         {
-                            // Handle the error. 10060 is a timeout error, which is expected.
+                            Byte[] data = this.listener.Receive(ref this._endPoint);
+                            string message = Encoding.ASCII.GetString(data);
+
+                            if (this.OnCommandIncoming != null)
+                                this.OnCommandIncoming(this, new IncomingCommandEventArgs(Command.TryParse(message)));
                         }
+                        catch(SocketException ex)
+                        {
+                            if (ex.ErrorCode != 10060)
+                            {
+                                // Handle the error. 10060 is a timeout error, which is expected.
+                            }
+                        }
+
+                        Thread.Sleep(5);
                     }
                 }
             });

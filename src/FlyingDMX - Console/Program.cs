@@ -14,9 +14,19 @@ namespace Nuernberger.FlyingDMX.TestConsole
         static void Main(string[] args)
         {
             Console.Title = "FlyingDMX";
-            bool drvManagerEnabled = Convert.ToBoolean(args.Where(item => item.StartsWith("drvmnger")).First().Split('=')[1]);
-            string explizitDriver = args.Where(item => item.StartsWith("driver")).First().Split('=')[1];
+           
+            bool drvManagerEnabled = true;
+            string explizitDriver = null;
 
+            try
+            {
+                drvManagerEnabled = Convert.ToBoolean(args.Where(item => item.StartsWith("drvmnger")).First().Split('=')[1]);
+                explizitDriver = args.Where(item => item.StartsWith("driver")).First().Split('=')[1];
+            }
+            catch
+            {
+            }
+            
             Base myBase = new Base();
             myBase.Run(drvManagerEnabled, explizitDriver);
 
@@ -55,13 +65,20 @@ namespace Nuernberger.FlyingDMX.TestConsole
             flyingServer.OnServerStop += OnServerStop;
             flyingServer.OnCommandIncoming += OnCommandIncoming;
 
+            controller = new DMXController(Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().FullName), "devices"));
+            controller.OnDeviceLoaded += OnDeviceLoaded;
+
+            Console.WriteLine("\nLoading devices from folder '" + controller.DeviceDefinitionsLocation + "' ..");
+            controller.LoadDevices();
+
+            driverManager = new DriverManager(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location));
+            driverManager.OnDriverLoaded += OnDriverLoaded;
+            driverManager.OnDriverUnloaded += OnDriverUnloaded;
+
             if(driverManagement)
             {
-                Console.WriteLine("Starting with driver manager disabled.");
-
-                driverManager = new DriverManager(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location));
-                driverManager.OnDriverLoaded += OnDriverLoaded;
-                driverManager.OnDriverUnloaded += OnDriverUnloaded;
+                Console.WriteLine("Starting with driver manager enabled.");
+                
                 driverManager.Load();
                 driverManager.StartWatching();
             }
@@ -72,18 +89,13 @@ namespace Nuernberger.FlyingDMX.TestConsole
                 if(!String.IsNullOrEmpty(drivertoload))
                 {
                     Console.WriteLine("But with driver: " + drivertoload);
+                    driverManager.Load(false, drivertoload);
                 }
                 else
                 {
                     Console.WriteLine("And *NO* driver choosen!");
                 }
             }
-
-            controller = new DMXController(Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().FullName), "devices"));
-            controller.OnDeviceLoaded += OnDeviceLoaded;
-
-            Console.WriteLine("\nLoading devices from folder '" + controller.DeviceDefinitionsLocation + "' ..");
-            controller.LoadDevices();
 
             flyingServer.Start(true);
         }
@@ -130,7 +142,7 @@ namespace Nuernberger.FlyingDMX.TestConsole
         {
             if (skippedUI == 60 || skippedUI < 0)
             {
-                Console.WriteLine("\nGot command:\n" + String.Format("\tType: {0}\n\tArgs: {1}", e.Command.Type.ToString(), String.Join(" ", e.Command.Args)));
+                //Console.WriteLine("\nGot command:\n" + String.Format("\tType: {0}\n\tArgs: {1}", e.Command.Type.ToString(), String.Join(" ", e.Command.Args)));
 
                 if (skippedUI < 0)
                     skippedUI++;

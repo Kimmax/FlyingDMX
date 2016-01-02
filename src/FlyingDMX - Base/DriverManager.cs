@@ -21,6 +21,7 @@ namespace Nuernberger.FlyingDMX
         WqlEventQuery removeQuery;
         ManagementEventWatcher removeWatcher;
 
+        ICollection<Assembly> assemblies;
         ICollection<Driver> drivers;
 
         public event EventHandler<PluginLoadUnloadEventArgs> OnDriverLoaded;
@@ -31,14 +32,15 @@ namespace Nuernberger.FlyingDMX
             this.DriverLocation = driverLocation;
         }
 
-        public void Load()
+        public void Load(bool autoScanUsb = true, string drivername = null)
         {
+
             if (Directory.Exists(this.DriverLocation))
             {
                 dllFileNames = Directory.GetFiles(this.DriverLocation, "*.dll");
             }
 
-            ICollection<Assembly> assemblies = new List<Assembly>(dllFileNames.Length);
+            assemblies = new List<Assembly>();
             foreach (string dllFile in dllFileNames)
             {
                 try
@@ -78,25 +80,40 @@ namespace Nuernberger.FlyingDMX
             foreach (Type type in pluginTypes)
             {
                 Driver plugin = (Driver)Activator.CreateInstance(type, 30);
+                plugin.Classname = type.Name;
                 drivers.Add(plugin);
-            }
 
-            ManagementObjectCollection collection;
-            using (var searcher = new ManagementObjectSearcher(@"Select * From Win32_USBHub"))
-                collection = searcher.Get();
-
-            foreach (var device in collection)
-            {
-                foreach (Driver driver in this.drivers)
+                if (drivername != null)
                 {
-                    if (driver.HardwareIDs.Any(hID => (device.GetPropertyValue("DeviceID") as string).StartsWith(hID)))
+                    if (plugin.Classname.Equals(drivername, StringComparison.CurrentCultureIgnoreCase))
                     {
-                        driver.Start();
+                        plugin.Start();
 
                         if (this.OnDriverLoaded != null)
-                            this.OnDriverLoaded(this, new PluginLoadUnloadEventArgs(driver));
+                            this.OnDriverLoaded(this, new PluginLoadUnloadEventArgs(plugin));
+                    }
+                }
+            }
 
-                        goto End;
+            if (autoScanUsb)
+            {
+                ManagementObjectCollection collection;
+                using (var searcher = new ManagementObjectSearcher(@"Select * From Win32_USBHub"))
+                    collection = searcher.Get();
+
+                foreach (var device in collection)
+                {
+                    foreach (Driver driver in this.drivers)
+                    {
+                        if (driver.HardwareIDs.Any(hID => (device.GetPropertyValue("DeviceID") as string).StartsWith(hID)))
+                        {
+                            driver.Start();
+
+                            if (this.OnDriverLoaded != null)
+                                this.OnDriverLoaded(this, new PluginLoadUnloadEventArgs(driver));
+
+                            goto End;
+                        }
                     }
                 }
             }
