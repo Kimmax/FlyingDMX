@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.IO;
 using System.Drawing;
-using Nuernberger.FlyingDMX;
-using Nuernberger.FlyingDMX.Drivers;
+using System.IO;
+using System.Linq;
+using System.Net;
 
 namespace Nuernberger.FlyingDMX.TestConsole
 {
@@ -38,10 +35,11 @@ namespace Nuernberger.FlyingDMX.TestConsole
     public class Base
     {
         Server flyingServer;
+        Server DIRECTflyingServer;
         DMXController controller;
         DriverManager driverManager;
 
-        int skippedUI = -4;
+        bool DEBUG = false;
 
         Driver loadedDriver
         {
@@ -60,10 +58,15 @@ namespace Nuernberger.FlyingDMX.TestConsole
 
         public void Run(bool driverManagement, string drivertoload = null)
         {
-            flyingServer = new Server(3636);
-            flyingServer.OnServerStart += OnServerStart;
-            flyingServer.OnServerStop += OnServerStop;
-            flyingServer.OnCommandIncoming += OnCommandIncoming;
+            DIRECTflyingServer = new Server(IPAddress.Parse("192.168.179.255"), 3636);
+            DIRECTflyingServer.ServerStart += OnServerStart;
+            DIRECTflyingServer.ServerStop += OnServerStop;
+            DIRECTflyingServer.CommandIncoming += OnCommandIncoming;
+
+            flyingServer = new Server(IPAddress.Parse("192.168.178.255"), 3636);
+            flyingServer.ServerStart += OnServerStart;
+            flyingServer.ServerStop += OnServerStop;
+            flyingServer.CommandIncoming += OnCommandIncoming;
 
             controller = new DMXController(Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().FullName), "devices"));
             controller.OnDeviceLoaded += OnDeviceLoaded;
@@ -97,7 +100,8 @@ namespace Nuernberger.FlyingDMX.TestConsole
                 }
             }
 
-            flyingServer.Start(true);
+            flyingServer.Start(false);
+            DIRECTflyingServer.Start(true);
         }
 
         void OnDriverLoaded(object sender, PluginLoadUnloadEventArgs e)
@@ -130,35 +134,26 @@ namespace Nuernberger.FlyingDMX.TestConsole
 
         void OnServerStart(object sender, ServerStartStopEventArgs e)
         {
-            Console.WriteLine("Server started at: " + e.Endpoint.ToString());
+            Console.WriteLine("[{0}] Server started at: " + e.Endpoint.ToString(), DateTime.Now.TimeOfDay);
         }
 
         void OnServerStop(object sender, ServerStartStopEventArgs e)
         {
-            Console.WriteLine("Server stopped: " + e.Endpoint.ToString());
+            Console.WriteLine("[{0}] Server stopped: " + e.Endpoint.ToString(), DateTime.Now.TimeOfDay);
         }
 
         void OnCommandIncoming(object sender, IncomingCommandEventArgs e)
         {
-            if (skippedUI == 60 || skippedUI < 0)
-            {
-                //Console.WriteLine("\nGot command:\n" + String.Format("\tType: {0}\n\tArgs: {1}", e.Command.Type.ToString(), String.Join(" ", e.Command.Args)));
+            if(DEBUG)
+                Console.WriteLine("\nGot command:\n" + String.Format("\tType: {0}\n\tArgs: {1}", e.Command.Type.ToString(), String.Join(" ", e.Command.Args)));
 
-                if (skippedUI < 0)
-                    skippedUI++;
-                else
-                    skippedUI = 0;
-            }
-            else
-            {
-                skippedUI++;
-            }
+            DMXDevice.Location loc = (DMXDevice.Location)Enum.Parse(typeof(DMXDevice.Location), e.Command.Args[1]);
 
             switch (e.Command.Type)
             {
                 case Command.CommandType.SetBrightness:
                     {
-                        DMXDevice.Location loc = (DMXDevice.Location)Enum.Parse(typeof(DMXDevice.Location), e.Command.Args[1]);
+                        
                         controller.SetDeviceMaster(Convert.ToByte(e.Command.Args[0]), loc);
 
                         break;
@@ -166,14 +161,19 @@ namespace Nuernberger.FlyingDMX.TestConsole
                 case Command.CommandType.SetColor:
                     {
                         Color color = System.Drawing.ColorTranslator.FromHtml(e.Command.Args[0]);
-                        DMXDevice.Location loc = (DMXDevice.Location)Enum.Parse(typeof(DMXDevice.Location), e.Command.Args[1]);
                         controller.SetDeviceColor(color, loc);
 
+                        break;
+                    }
+                case Command.CommandType.SetS2L:
+                    {
+                        controller.SetS2L(Convert.ToBoolean(e.Command.Args[0]), loc);
                         break;
                     }
                 case Command.CommandType.Exit:
                     {
                         flyingServer.Stop();
+                        DIRECTflyingServer.Stop();
                         break;
                     }
             }

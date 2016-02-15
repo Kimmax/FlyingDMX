@@ -11,6 +11,7 @@ namespace Nuernberger.FlyingDMX
         {
             SetBrightness,
             SetColor,
+            SetS2L,
             Exit
         }
 
