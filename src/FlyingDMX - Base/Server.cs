@@ -27,9 +27,9 @@ namespace Nuernberger.FlyingDMX
         public event EventHandler<ServerStartStopEventArgs> OnServerStart;
         public event EventHandler<ServerStartStopEventArgs> OnServerStop;
 
-        public Server(short port = 3636)
+        public Server(IPAddress ip, short port = 3636)
         {
-            this.Endpoint = new IPEndPoint(IPHelper.GetBroadcastIP(), port);
+            this.Endpoint = new IPEndPoint(ip, port);
             this.listener = new UdpClient(port);
             this.listener.EnableBroadcast = true;
 

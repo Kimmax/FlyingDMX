@@ -59,14 +59,14 @@ namespace Nuernberger.FlyingDMX.TestConsole
         public void Run(bool driverManagement, string drivertoload = null)
         {
             DIRECTflyingServer = new Server(IPAddress.Parse("192.168.179.255"), 3636);
-            DIRECTflyingServer.ServerStart += OnServerStart;
-            DIRECTflyingServer.ServerStop += OnServerStop;
-            DIRECTflyingServer.CommandIncoming += OnCommandIncoming;
+            DIRECTflyingServer.OnServerStart += OnServerStart;
+            DIRECTflyingServer.OnServerStart += OnServerStop;
+            DIRECTflyingServer.OnCommandIncoming += OnCommandIncoming;
 
             flyingServer = new Server(IPAddress.Parse("192.168.178.255"), 3636);
-            flyingServer.ServerStart += OnServerStart;
-            flyingServer.ServerStop += OnServerStop;
-            flyingServer.CommandIncoming += OnCommandIncoming;
+            flyingServer.OnServerStart += OnServerStart;
+            flyingServer.OnServerStart += OnServerStop;
+            flyingServer.OnCommandIncoming += OnCommandIncoming;
 
             controller = new DMXController(Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().FullName), "devices"));
             controller.OnDeviceLoaded += OnDeviceLoaded;
