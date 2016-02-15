@@ -54,7 +54,7 @@ namespace Nuernberger.FlyingDMX
 
         public void SetDeviceColor(Color color, DMXDevice.Location loc)
         {
-            foreach(DMXDevice device in DMXDevices.Where(device => device.DeviceLocation == loc || loc == DMXDevice.Location.All))
+            foreach (DMXDevice device in DMXDevices.Where(device => loc == DMXDevice.Location.All || device.DeviceLocation == loc))
             {
                 DMXDriver.SetDMXValue(device.R, color.R);
                 DMXDriver.SetDMXValue(device.G, color.G);
@@ -62,6 +62,14 @@ namespace Nuernberger.FlyingDMX
 
                 if (this.OnColorChange != null)
                     this.OnColorChange(this, new ColorChangedEventArgs(color, device));
+            }
+        }
+
+        public void SetS2L(bool enable, DMXDevice.Location loc)
+        {
+            foreach (DMXDevice device in DMXDevices.Where(device => device.Sound2Light != -1 && (loc == DMXDevice.Location.All || device.DeviceLocation == loc)))
+            {
+                DMXDriver.SetDMXValue(device.Sound2Light, (byte)(enable ? 255 : 0));
             }
         }
 

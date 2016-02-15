@@ -9,7 +9,7 @@ using System.Management;
 
 namespace Nuernberger.FlyingDMX
 {
-    public class DriverManager
+    public class DriverManager : IDisposable
     {
         private string[] dllFileNames = null;
 
@@ -79,7 +79,7 @@ namespace Nuernberger.FlyingDMX
             drivers = new List<Driver>(pluginTypes.Count);
             foreach (Type type in pluginTypes)
             {
-                Driver plugin = (Driver)Activator.CreateInstance(type, 30);
+                Driver plugin = (Driver)Activator.CreateInstance(type, 5);
                 plugin.Classname = type.Name;
                 drivers.Add(plugin);
 
@@ -175,6 +175,12 @@ namespace Nuernberger.FlyingDMX
 
             this.removeWatcher.Stop();
             this.removeWatcher = null;
+        }
+
+        public void Dispose()
+        {
+            ((IDisposable)removeWatcher).Dispose();
+            ((IDisposable)insertWatcher).Dispose();
         }
     }
 }

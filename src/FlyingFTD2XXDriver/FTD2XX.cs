@@ -106,7 +106,10 @@ namespace Nuernberger.FlyingDMX.Drivers
 
             handle = 0;
             status = FT_Open(0, ref handle);
-            Console.WriteLine(status.ToString());
+            Console.WriteLine("[DRIVER STATUS] " + status.ToString());
+
+            InitOpenDMX();
+
             done = false;
             workThread = new Thread(new ThreadStart(writeData));
             workThread.Start();
@@ -114,7 +117,7 @@ namespace Nuernberger.FlyingDMX.Drivers
 
         public override void SetDMXValue(int channel, byte value)
         {
-            if (buffer != null)
+            if (buffer != null && buffer[channel] != value)
             {
                 buffer[channel] = value;
             }
@@ -124,15 +127,15 @@ namespace Nuernberger.FlyingDMX.Drivers
         {
             while (!done)
             {
-                InitOpenDMX();
                 FT_SetBreakOn(handle);
                 FT_SetBreakOff(handle);
                 bytesWritten = write(handle, buffer, buffer.Length);
+
                 Thread.Sleep(FrameRate);
             }
         }
  
-        public  int write(uint handle, byte[] data, int length)
+        public int write(uint handle, byte[] data, int length)
         {
             IntPtr ptr = Marshal.AllocHGlobal((int)length);
             Marshal.Copy(data, 0, ptr, (int)length);
