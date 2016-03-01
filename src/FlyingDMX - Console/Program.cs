@@ -60,12 +60,12 @@ namespace Nuernberger.FlyingDMX.TestConsole
         {
             DIRECTflyingServer = new Server(IPAddress.Parse("192.168.179.255"), 3636);
             DIRECTflyingServer.OnServerStart += OnServerStart;
-            DIRECTflyingServer.OnServerStart += OnServerStop;
+            DIRECTflyingServer.OnServerStop += OnServerStop;
             DIRECTflyingServer.OnCommandIncoming += OnCommandIncoming;
 
             flyingServer = new Server(IPAddress.Parse("192.168.178.255"), 3636);
             flyingServer.OnServerStart += OnServerStart;
-            flyingServer.OnServerStart += OnServerStop;
+            flyingServer.OnServerStop += OnServerStop;
             flyingServer.OnCommandIncoming += OnCommandIncoming;
 
             controller = new DMXController(Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().FullName), "devices"));

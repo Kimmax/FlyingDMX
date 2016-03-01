@@ -141,6 +141,7 @@ namespace Nuernberger.FlyingDMX.Drivers
             Marshal.Copy(data, 0, ptr, (int)length);
             uint bytesWritten = 0;
             status = FT_Write(handle, ptr, (uint)length, ref bytesWritten);
+            Marshal.FreeHGlobal(ptr);
             return (int)bytesWritten;
         }
  
